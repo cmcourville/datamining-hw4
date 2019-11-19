@@ -1,181 +1,112 @@
 import numpy as np
-import math
+
 #-------------------------------------------------------------------------
 '''
-    Problem 4: Graph Clustering (Spectral Clustering) 
-    In this problem, you will implement a version of the spectral clustering method to cluster the nodes in a graph into two groups.
-    You could test the correctness of your code by typing `nosetests -v test1.py` in the terminal.
+    Problem 4: face recognition 
+    In this problem, you will use PCA to perform face recogition in a face image dataset.
+    We assume you have already passed the unit tests in problem4.py. There will be a file named "face_pca.npy" in your folder.
+    This file contains a numpy matrix of shape (400,20), which is the reduced dimensions for the 400 face images.
+    We will need to use this file in this problem.
 
     Notations:
             ---------- input data ------------------------
-            n: the number of nodes in the network, an integer scalar.
-            A:  the adjacency matrix, a float numpy matrix of shape n by n. 
-                If there is a link between node i an node j, then A[i][j] = A[j][i] = 1. 
-            ---------- computed data ------------------------
-            D:  the degree matrix, a numpy float matrix of shape n by n. 
-                All off-diagonal elements are 0. Each diagonal element represents the degree of the node (number of links). 
-            L:  the Laplacian matrix, a numpy float matrix of shape n by n.  
-                L = D-A
-            E:  the eigen vectors of matrix L, a numpy float matrix of shape n by n. Each column of E corresponds to an eigen vector of matrix L.
-            v:  the eigen values of matrix L, a numpy float array of length n. Each element corresponds to an eigen value of matrix L. E and v are paired.
-            e2:  the eigen vector corresponding to the smallest non-zero eigen value, a numpy float matrix of shape (n by 1). 
-            tol: the tolerance threshold for eigen values, a float scalar. A very small positive value. If an eigen value is smaller than tol, then we consider the eigen value as being 0. 
-            x:  the binary vector of shape (n by 1), a numpy float vector of (0/1) values.
-                It indicates a binary partition on the graph, such as [1.,1.,1., 0.,0.,0.].
-            --------------------------------------------------
+            n: the number of face images, an integer scalar. (n = 400)
+            p: the number of pixels in each image, an integer scalar. (p= 4096)
+            c: the number of classes (persons), an integer scalar. (c = 40)
+            k: the number of dimensions to reduce to, an integer scalar.
+            Xp: the feature matrix with reduced dimensions, a numpy float matrix of shape n by k. 
+            ----------------------------------------------
 '''
 
 #--------------------------
-def compute_D(A):
+def compute_distance(Xp, q):
     '''
-        Compute the degree matrix D. 
-        Input:
-            A:  the adjacency matrix, a float numpy matrix of shape n by n. Here n is the number of nodes in the network.
-                If there is a link between node i an node j, then A[i][j] = A[j][i] = 1. 
+        Compute the Euclidean distance between an query image and all the images in an image dataset.  
+        Intput:
+            Xp: the projected feature matrix of all images, a float numpy matrix of shape (n , k). 
+            q:  a projected features of a query face image, a numpy vector of length k. 
         Output:
-            D:  the degree matrix, a numpy float matrix of shape n by n. 
-                All off-diagonal elements are 0. Each diagonal element represents the degree of the node (number of links). 
+            d: distances between the query image and all the images in Xp. A numpy vector of length n, where each element i, is the Euclidean distance between i-th image in X and the query image.
+
+        For example, if Xp is a 3 X 2 matrix (n=3,k =2), 3 images, 2 dimensional features
+            Xp = 0,0
+                 0,1
+                 1,1
+        and suppose the query image has a projected feature vector 
+            q = 1,1
+        Then
+            the distance between the first image in Xp (0,0) and the query image q (1,1) is: d[0]= square_root_of( (0-1)^2 + (0-1)^2 ) = 1.414
+            the distance between the second image in Xp (0,1) and the query image q (1,1) is: d[1]= square_root_of( (0-1)^2 + (1-1)^2 ) = 1
+            the distance between the third image in Xp (1,1) and the query image q (1,1) is: d[1]= square_root_of( (1-1)^2 + (1-1)^2 ) = 0
+        So in this case, the result should be d = [1.414,1,0]
+        Hint: you could solve this problem using 3 lines of code.
     '''
-
-    #########################################
-    ## INSERT YOUR CODE HERE
-
-    # degree vector of the nodes
-
-
-    # diagonal matrix
-
-
-    #########################################
-    return D
-
-#--------------------------
-def compute_L(D,A):
-    '''
-        Compute the Laplacian matrix L. 
-        Input:
-            D:  the degree matrix, a numpy float matrix of shape n by n. 
-                All off-diagonal elements are 0. Each diagonal element represents the degree of the node (number of links). 
-            A:  the adjacency matrix, a float numpy matrix of shape n by n. Here n is the number of nodes in the network.
-                If there is a link between node i an node j, then A[i][j] = A[j][i] = 1. 
-        Output:
-            L:  the Laplacian matrix, a numpy float matrix of shape n by n. 
-    '''
-
     #########################################
     ## INSERT YOUR CODE HERE
 
 
 
     #########################################
-    return L
+    return d
 
-#--------------------------
-def compute_eigen_pairs(L):
-    '''
-        Compute the eigen vectors and eigen values of L. 
-        Input:
-            L:  the Laplacian matrix, a numpy float matrix of shape n by n. 
-        Output:
-            E:  the eigen vectors of matrix L, a numpy float matrix of shape p by p. Each column of E corresponds to an eigen vector of matrix L.
-            v:  the eigen values of matrix L, a numpy float array of length p. Each element corresponds to an eigen value of matrix L. E and v are paired.
-        Hint: you could use np.linalg.eig() to compute the eigen vectors of a matrix. 
-        Note: in the returned eigen vectors "eig_vecs", each column (not row) is considered as an eigen vector. 
-    '''
+    ''' TEST: Now you can test the correctness of your code above by typing `nosetests -v test4.py:test_compute_distance' in the terminal.  '''
 
-    #########################################
-    ## INSERT YOUR CODE HERE
-
-
-    #########################################
-    return E,v
-
-
-#--------------------------
-def find_e2(E,v, tol= 1e-4):
-    '''
-        find the eigen vector that corresponds to the smallest non-zeros eigen values.
-        For example, if the eigen values are [0.5, 0.000001, 2.], the first eigen vector is the answer.
-        For example, if the eigen values are [2., 0.000001, 0.3], the last eigen vector is the answer.
-        For example, if the eigen values are [0.00003, 0.000001, 0.3], the last eigen vector is the answer.
-        Input:
-            E:  the eigen vectors of matrix L, a numpy float matrix of shape n by n. Each column of E corresponds to an eigen vector of matrix L.
-            v:  the eigen values of matrix L, a numpy float array of length n. Each element corresponds to an eigen value of matrix L. E and v are paired.
-            tol: the tolerance threshold for eigen values, a float scalar. A very small positive value. If an eigen value is smaller than tol, then we consider the eigen value as being 0. 
-        Output:
-            e2:  the eigen vector corresponding to the smallest non-zero eigen value, a numpy float matrix of shape (n by 1). 
-    '''
-
-    #########################################
-    ## INSERT YOUR CODE HERE
-
-    # sort the eigen values
-
-
-
-
-
-    #########################################
-    return e2 
-
-
-#--------------------------
-def compute_x(e2):
-    '''
-        Compute the partition on the graph from the thresholding an eigen vector with 0 threshold. 
-        Input:
-            e2:  the eigen vector corresponding to the smallest non-zero eigen value, a numpy float matrix of shape (n by 1). 
-        Output:
-            x:  the binary vector of shape (n by 1), a numpy float vector of (0/1) values.
-                It indicates a binary partition on the graph, such as [1.,1.,1., 0.,0.,0.].
-    '''
-
-    #########################################
-    ## INSERT YOUR CODE HERE
-
-
-
-    #########################################
-    return x
 
 
 
 #--------------------------
-def spectral_clustering(A):
+def face_recognition(Xp,q):
     '''
-        Spectral clustering of a graph. 
+        Compute the most similar faces to the query face (id) from all the images in an image dataset.  
+        We will use one image from olivetti face dataset as the query and search for similar faces to the query.
         Input:
-            A:  the adjacency matrix, a float numpy matrix of shape n by n. Here n is the number of nodes in the network.
-                If there is a link between node i an node j, then A[i][j] = A[j][i] = 1. 
+            Xp: the projected feature matrix, a float numpy matrix of shape (n, k). 
+            q:  a projected features of a query face image, a numpy vector of length k. 
         Output:
-            x:  the binary vector of shape (n by 1), a numpy float vector of (0/1) values.
-                It indicates a binary partition on the graph, such as [1.,1.,1., 0.,0.,0.].
-        Note: you cannot use any existing python package for spectral clustering, such as scikit-learn.
-        Hint: x is related to the eigen vector of L with the smallest positive eigen values. 
-              For example, if the eigen vector is [0.2,-0.1, -0.2], the values larger than zero will be 1, so x=[1,0,0] in this example.
-              Note: if the eigen value is small enough (say smaller than 0.000001), we can treat it as being zero. 
-    (5 points)
+            ids: the ranked ids of similar face images to the query image.
+        For example, suppose we have 3 face images in a dataset (n=3) and after PCA, we reduce the dimensionality to 2 (k=2).
+            Xp =  0,0 (id=0)
+                  1,1 (id=1)
+                  0,1 (id=2)
+            and the query image has a feature vector q = 1,1
+            The distance between the query and all the three images are: 1.414, 0 , 1
+            So the most similar image to the query image is the second image (ID=1),where the distance is the smallest: 0;
+                 and the second most similar image is the last image (ID=2), where the distance is the second smallest: 1;
+            The least similar image to the query is the first image (ID=0), where the distance is the largest: 1.414;
+            So in this case, the sorted id list should be [1,2,0].
+        Hint: you could solve this problem using 2 lines of code.
     '''
-   
     #########################################
     ## INSERT YOUR CODE HERE
 
-    # compute degree matrix
-
-
-    # compute laplacian matrix
-
-
-    # compute eigen pairs of L
-
-
-    # find the eigen vector with the smallest non-zero eigen value
-
-
-    # compute the graph partition
-
 
     #########################################
-    return x 
+    return ids
+
+
+    ''' TEST: Now you can test the correctness of your code above by typing `nosetests -v test4.py:test_face_recognition' in the terminal.  
+              The query image will be saved in your current folder with name 'query.jpg',
+              Then the top 10 most similar images in the dataset will be saved in your current folder with names 'result_i.jpg'
+              Because the query image that we chose is one of the images in the dataset, so if your method works correctly, the most similar image ('result_1.jpg') should be exactly the same image as the query image ('query.jpg'). You could check by opening both images and see if they are the same.
+    '''
+
+
+
+#--------------------------------------------
+
+''' TEST Problem 4: 
+        Now you can test the correctness of all the above functions by typing `nosetests -v test4.py' in the terminal.  
+
+        If your code passed all the tests, you will see the following message in the terminal:
+            ----------- Problem 4 (20 points in total)--------------------- ... ok
+            (10 points) compute_distance ... ok
+            (10 points) face_recognition ... ok
+            ----------------------------------------------------------------------
+            Ran 3 tests in 0.075s       
+            OK
+'''
+
+#--------------------------------------------
+
 
 

@@ -1,14 +1,12 @@
-from problem2 import * 
+from problem2 import *
 import numpy as np
 import sys
-#import scipy.misc
-import imageio
 
 '''
     Unit test 2:
     This file includes unit tests for problem2.py.
-    You could test the correctness of your code by typing `nosetests -v test2.py` in the terminal.
 '''
+
 
 #-------------------------------------------------------------------------
 def test_python_version():
@@ -16,84 +14,248 @@ def test_python_version():
     assert sys.version_info[0]==3 # require python 3 (instead of python 2)
 
 #-------------------------------------------------------------------------
-def test_reshape_to_image():
-    ''' (3 points) reshap_to_image'''
-    x = np.random.random(4096)
-    x = np.asmatrix(x)
+def test_centering_X():
+    '''(3 points) centering_X'''
+     #-------------------------------
+    # an example matrix (2 dimensional)
+    X = np.array([[0., 2.],
+                  [2., 0.],
+                  [1., 1.]])
 
     # call the function
-    image = reshape_to_image(x)
-    
-    assert type(image) == np.matrixlib.defmatrix.matrix
-    assert image.shape == (64,64)
+    Xc,mu = centering_X(X)
 
+    # test whether or not X is a numpy matrix 
+    assert type(Xc) == np.ndarray
+    assert Xc.shape == (3,2)
+
+    assert type(mu) == np.ndarray
+    assert mu.shape == (2,)
+
+    Xc_true = np.array([[-1., 1.],
+                        [ 1.,-1.],
+                        [ 0., 0.]])
+
+    assert np.allclose(Xc,Xc_true,atol=1e-2)
+    assert np.allclose(mu,[1.,1.],atol=1e-2)
+
+    #-------------------------------
+    # test on random matrix 
     for _ in range(20):
-        i = np.random.randint(64)
-        j = np.random.randint(64)
-        assert image[i,j] == x[0,i*64+j]
+        n = np.random.randint(3,40)
+        p = np.random.randint(3,40)
+        X = np.random.random((n,p))
+        # call the function
+        Xc,mu = centering_X(X)
+
+        # test the result
+        assert Xc.shape == (n,p)
+        assert mu.shape == (p,)
+        assert np.allclose(Xc.sum(),0.,atol=1e-2) 
+
+        i = np.random.randint(p)
+        assert np.allclose(X[:,i].sum(), mu[i]*n, atol=1e-2)
+
+
     
 
 #-------------------------------------------------------------------------
-def test_load_dataset():
-    ''' (2 points) load_dataset'''
+def test_compute_C():
+    '''(2 points) compute_C'''
+
+    #-------------------------------
+    # an example matrix (2 dimensional)
+    Xc = np.array([[-1., 1.],
+                   [ 1.,-1.],
+                   [ 0., 0.]])
+
     # call the function
-    X, y, images = load_dataset()
-    assert type(X) == np.matrixlib.defmatrix.matrix
-    assert X.shape == (400,4096)
-    assert type(y) == np.matrixlib.defmatrix.matrix
-    assert y.shape == (400,1)
-    assert type(images) == np.ndarray
-    assert images.shape == (400,64,64)
+    C = compute_C(Xc)
+
+    # test whether or not C is a numpy matrix 
+    assert type(C) == np.ndarray
+
+    # true answer
+    C_true = np.array([[1., -1.],
+                       [-1., 1.]])
+
+    # test the result
+    assert np.allclose(C,C_true, atol=1e-2)
+
+
+    #-------------------------------
+    # an example matrix (3 dimensional)
+    Xc = Xc*2
+       
+    # call the function
+    C = compute_C(Xc)
+
+    C_true = C_true * 4 
+
+    # test the result
+    assert np.allclose(C,C_true,atol=1e-2)
+    
+    #-------------------------------
+    # test on random matrix 
+    for _ in range(20):
+        n = np.random.randint(3,40)
+        p = np.random.randint(3,40)
+        X = np.random.random((p,n))
+        # call the function
+        C = compute_C(X)
+
+        # test the result
+        assert np.allclose(C.T, C) 
+        # test whether C is symmetric 
+        assert (C.T == C).all()
+
 
 
 #-------------------------------------------------------------------------
-def test_compute_mu_image():
-    ''' (5 points) compute_mu_image'''
+def test_compute_P():
+    '''(5 points) compute_P'''
+    C = np.array([[1., -1.],
+                  [-1., 1.]])
     
+    P = compute_P(C, k=1) 
+    assert type(P) == np.ndarray
+    P_true = np.array([[-0.70710678],
+                       [ 0.70710678]])
+    assert np.allclose(P,P_true,atol=1e-2) or np.allclose(P,-P_true,atol=1e-2)
+
+    # test another example
+    P = compute_P(C,k=2) 
+    P_true= np.array([[ 0.70710678, 0.70710678],
+                      [-0.70710678, 0.70710678]])
+    assert np.allclose(P.T[0],P_true.T[0],atol=1e-2) or np.allclose(P.T[0],-P_true.T[0],atol=1e-2) 
+    assert np.allclose(P.T[1],P_true.T[1],atol=1e-2) or np.allclose(P.T[1],-P_true.T[1],atol=1e-2) 
+
+
+    C= np.diag((1, 2, 3)) 
+    P = compute_P(C,k=2) 
+    P_true= np.array([[0,0],
+                      [0,1],
+                      [1,0]])
+    assert np.allclose(P.T[0],P_true.T[0],atol=1e-2) or np.allclose(P.T[0],-P_true.T[0],atol=1e-2) 
+    assert np.allclose(P.T[1],P_true.T[1],atol=1e-2) or np.allclose(P.T[1],-P_true.T[1],atol=1e-2) 
+
+
+
+
+#-------------------------------------------------------------------------
+def test_compute_Xp():
+    '''(5 points) compute_Xp'''
+    Xc = np.array([[-1., 1.],
+                   [ 1.,-1.],
+                   [ 0., 0.]])
+    P = np.array([[ 0.70710678],
+                  [-0.70710678]])
+    
+    Xp = compute_Xp(Xc,P) 
+    
+    assert type(Xp) == np.ndarray
+    assert Xp.shape == (3,1)
+    Xp_true = np.array([[-1.41421356],
+                        [ 1.41421356],
+                        [ 0.        ]])
+
+    assert np.allclose(Xp, Xp_true,atol=1e-2)
+    
+    
+    # test another example
+    P= np.array([[ 0.70710678, 0.70710678],
+                 [-0.70710678, 0.70710678]])
+
+    Xp = compute_Xp(Xc,P) 
+    assert Xp.shape == (3,2)
+    Xp_true = np.array([[-1.41421356, 0.],
+                        [ 1.41421356, 0.],
+                        [ 0.        , 0.]])
+
+    assert np.allclose(Xp, Xp_true,atol=1e-2)
+ 
+
+#-------------------------------------------------------------------------
+def test_PCA():
+    '''(10 points) PCA'''
+
+    #-------------------------------
+    # an example matrix 
+    X = np.array([[0., 2.],
+                  [2., 0.],
+                  [1., 1.]])
 
     # call the function
-    X, _, _ = load_dataset()
-    mu = compute_mu_image(X)
-    
-    assert type(mu) == np.matrixlib.defmatrix.matrix
-    assert mu.shape == (64,64)
+    Xp, P = PCA(X)
+ 
+    assert type(P) == np.ndarray
+    assert type(Xp) == np.ndarray
+    assert Xp.shape ==(3,1)
+    assert P.shape ==(2,1)
+  
 
-    # write average face image to file 'mu.jpg'
-    #scipy.misc.imsave('mu.jpg', mu)
-    imageio.imwrite('mu.jpg', mu)
-    
-    # you could take a lot at the average face image in your folder
-    
-    assert np.allclose([0.40013435, 0.43423545, 0.4762809],mu[0,:3],atol=1e-2)
-    assert np.allclose([0.36046496, 0.36678693, 0.37106389],mu[-1,:3],atol=1e-2)
+    P_true = np.array([[ .707],
+                       [-.707]])
+    Xp_true = np.array([[-1.414],
+                        [ 1.414],
+                        [ 0    ]])
+ 
+    # test the result
+    assert np.allclose(P,P_true, atol=1e-2) or np.allclose(P,-P_true, atol=1e-2)
+    assert np.allclose(Xp, Xp_true, atol=1e-2) or np.allclose(Xp, -Xp_true, atol=1e-2)
 
-#-------------------------------------------------------------------------
-def test_compute_eigen_faces():
-    ''' (15 points) compute_eigen_faces'''
-    X = np.asmatrix(np.zeros((400,4096)))
-    P_images, Xp = compute_eigen_faces(X,k= 2)
-    assert type(P_images) == list
-    assert type(Xp) == np.matrixlib.defmatrix.matrix
-    assert len(P_images) == 2
-    assert type(P_images[0]) == np.matrixlib.defmatrix.matrix
-    assert P_images[0].shape == (64,64) 
-    assert Xp.shape == (400,2) 
+    #-------------------------------
+    # an example matrix 
+    X = np.array([[0., 2., 2.],
+                  [2., 0., 0]])
 
-   
-    # load the face image dataset 
-    X, _, _ = load_dataset()
-    P_images, Xp = compute_eigen_faces(X,k= 20)
-    assert len(P_images) == 20
+    # call the function
+    Xp, P = PCA(X)
 
-    for i,image in enumerate(P_images):
-        #scipy.misc.imsave('eigen_face_%d.jpg' % (i+1), image) 
-        imageio.imwrite('eigen_face_%d.jpg' % (i+1), image) 
-    # If you are getting errors in the above line, the error is likely to be related to the `centering_X` function in problem2.
-    # Note: in order to center X, you don't have to multiply mu with an all-one vector. Use the broadcasting method in numpy: Xc = X - mu
+    assert Xp.shape ==(2,1)
+    assert P.shape ==(3,1)
 
-    c = P_images[0]
-    assert np.allclose([-0.0041911,  -0.0071095,  -0.00933609],c[0,:3],atol=1e-3) or np.allclose([0.0041911,  0.0071095,  0.00933609],c[0,:3],atol=1e-3)
-    assert np.allclose([0.01161627,  0.01290446,  0.01308161],c[-1,:3],atol=1e-3) or np.allclose([-0.01161627, -0.01290446, -0.01308161],c[-1,:3],atol=1e-3)
+    # test the result
+    P_true = np.array([[ .577],
+                       [-.577],
+                       [-.577]])
+    Xp_true = np.array([[-1.73205081],
+                        [ 1.73205081]])
+    assert np.allclose(P,P_true, atol=1e-2) or np.allclose(P,-P_true, atol=1e-2)
+    assert np.allclose(Xp,Xp_true, atol=1e-2) or np.allclose(Xp,-Xp_true, atol=1e-2)
 
-    # save the results into a file
-    np.save('face_pca.npy',Xp)
+    #-------------------------------
+    # an example matrix 
+    #X = np.random.random((100,10)) # generate an N = 100, D = 10 random data matrix
+    X = np.array([[2., 2.],
+                  [0., 0]])
+
+
+    # call the function
+    Xp, P = PCA(X,2)
+
+    assert Xp.shape ==(2,2)
+    assert P.shape ==(2,2)
+
+    P_true = np.array([[.707, -.707],
+                       [.707,  .707]])
+
+    Xp_true = np.array([[ 1.414, 0],
+                        [-1.414, 0]])
+    assert np.allclose(P,P_true, atol=1e-2) or np.allclose(P,-P_true, atol=1e-2)
+    assert np.allclose(Xp,Xp_true, atol=1e-2) or np.allclose(Xp,-Xp_true, atol=1e-2)
+    #-------------------------------
+    # test on random matrix 
+    for _ in range(20):
+        n = np.random.randint(3,40)
+        p = np.random.randint(3,40)
+        k = np.random.randint(p-1)+1
+        X = np.random.random((n,p))
+        # call the function
+        Xp, P = PCA(X,k)
+
+        # test the result
+        assert Xp.shape == (n,k) 
+        assert P.shape == (p,k) 
+
+

@@ -1,107 +1,56 @@
 #-------------------------------------------------------------------------
 # Note: please don't use any additional package except the following packages
 import numpy as np
-import math
 #-------------------------------------------------------------------------
 '''
-    Problem 1: PCA 
-    In this problem, you will implement a version of the principal component analysis method to reduce the dimensionality of data.
-    You could test the correctness of your code by typing `nosetests -v test1.py` in the terminal.
+    Problem 1: 
+    In this problem, you will get familiar with matrix eigen vectors and eigen values.
 
-    Notations:
-            ---------- input data ------------------------
-            n: the number of data instances (for example, # of images), an integer scalar.
-            p: the number of dimensions (for example, # of pixels in each image), an integer scalar.
-            X: the feature matrix, a float numpy matrix of shape n by p. 
-            ---------- computed data ----------------------
-            mu: the average vector of matrix X, a numpy float matrix of shape 1 by p. 
-                Each element mu[0,i] represents the average value in the i-th column of matrix X.
-            Xc: the centered matrix X, a numpy float matrix of shape n by p. 
-                Each column has a zero mean value.
-            C:  the covariance matrix of matrix X, a numpy float matrix of shape p by p. 
-            k:  the number of dimensions to reduce to (k should be smaller than p), an integer scalar
-            E:  the eigen vectors of matrix X, a numpy float matrix of shape p by p. 
-                Each column of E corresponds to an eigen vector of matrix X.
-            v:  the eigen values of matrix X, a numpy float array of length p. 
-                Each element corresponds to an eigen value of matrix X. E and v are paired.
-            Xp: the projected feature matrix with reduced dimensions, a numpy float matrix of shape n by k. 
-             P: the projection matrix, a numpy float matrix of shape p by k. 
-            -----------------------------------------------
 '''
 
 #--------------------------
-def centering_X(X):
+def Terms_and_Conditions():
+    ''' 
+        By submitting this homework or changing this function, you agree with the following terms:
+       (1) Not sharing your code/solution with any student before and after the homework due. For example, sending your code segment to another student, putting your solution online or lending your laptop (if your laptop contains your solution or your Dropbox automatically synchronize your solution between your home computer and your laptop) to another student to work on this homework will violate this term.
+       (2) Not using anyone's code in this homework, build your own solution. For example, using some code segments from another student or online resources due to any reason (like too busy recently) will violate this term. Changing other people's code as your solution (such as changing the variable names) will also violate this term.
+       (3) When discussing with any other student about this homework, only discuss high-level ideas or using pseudo-code. Don't discuss about the solution at the code level. For example, discussing with another student about the solution of a function (which needs 5 lines of code to solve), and then working on the solution "independently", however the code of the two solutions are exactly the same, or only with minor differences  (like changing variable names) will violate this term.
+      All violations of (1),(2) or (3) will be handled in accordance with the WPI Academic Honesty Policy.  For more details, please visit: https://www.wpi.edu/about/policies/academic-integrity/dishonesty
+      Historical Data: in one year, we ended up finding 25% of the students in the class violating this term in their homework submissions and we handled ALL of these violations according to the WPI Academic Honesty Policy. 
     '''
-        Centering matrix X, so that each column has zero mean.
-        Input:
-            X:  the feature matrix, a float numpy matrix of shape n by p. Here n is the number of data records, p is the number of dimensions.
-        Output:
-            Xc:  the centered matrix X, a numpy float matrix of shape n by p. 
-            mu:  the average row vector of matrix X, a numpy float matrix of shape 1 by p. 
-        Note: please don't use the np.cov() function. There seems to be a bug in their code which will result in an error in later test cases. 
-              Please implement this function only using basic numpy functions, such as np.mean().
-    '''
-
-    #########################################
-    ## INSERT YOUR CODE HERE
-
-
-
-
-    #########################################
-    return Xc, mu
+    #****************************************
+    #* CHANGE CODE HERE
+    Read_and_Agree = False  #if you have read and agree with the term above, change "False" to "True".
+    #****************************************
+    return Read_and_Agree
 
 
 #--------------------------
-def compute_C(Xc):
+def compute_eigen_pairs(X):
     '''
-        Compute the covariance matrix C. 
+        Compute the eigen vectors and eigen values of matrix X. 
         Input:
-            Xc:  the centered feature matrix, a float numpy matrix of shape n by p. Here n is the number of data records, p is the number of dimensions.
+            X:  a numpy float matrix of shape p by p, Note, X should be a symmetric matrix.
         Output:
-            C:  the covariance matrix, a numpy float matrix of shape p by p. 
-        Note: please don't use the np.cov() function here. Implement the function using matrix multiplication.
-    '''
+            Ep:  the eigen pairs of matrix X, a python list of length p. 
+                Ep is a list as [(v1,e1), (v2, e2), ... ]
+                Each element of Ep corresponds to one eigen pair (v,e), here v is an eigen value of matrix X, e is its eigen vector.
+                Here v is a float scalar, and e is a numpy vector of length p.
 
-    #########################################
-    ## INSERT YOUR CODE HERE
-
-
-
-
-    #########################################
-    return C
-
-
-#--------------------------
-def compute_eigen_pairs(C):
-    '''
-        Compute the eigen vectors and eigen values of C. 
-        Input:
-            C:  the covariance matrix, a numpy float matrix of shape p by p. 
-        Output:
-            E:  the eigen vectors of matrix C, a numpy float matrix of shape p by p. Each column of E corresponds to an eigen vector of matrix C.
-            v:  the eigen values of matrix C, a numpy float array of length p. Each element corresponds to an eigen value of matrix C. E and v are paired.
-        Hint: you could use np.linalg.eig() to compute the eigen vectors of a matrix. 
-    '''
-
-    #########################################
-    ## INSERT YOUR CODE HERE
-
-
-    #########################################
-    return E,v
-
-#--------------------------
-def compute_P(E,v,k):
-    '''
-        Compute the projection matrix P by combining the eigen vectors with the top k largest eigen values. 
-        Input:
-            E:  the eigen vectors of matrix X, a numpy float matrix of shape p by p. Each column of E corresponds to an eigen vector of matrix X.
-            v:  the eigen values of matrix X, a numpy float array of length p. Each element corresponds to an eigen value of matrix X. E and v are paired.
-            k:  the number of dimensions to reduce to (k should be smaller than p), an integer scalar
-        Output:
-            P: the projection matrix, a numpy float matrix of shape p by k. 
+        For example, suppose we have a 3x3 matrix:
+            X =  1, 0, 0
+                 0, 2, 0
+                 0, 0, 3
+        This matrix has three eigen pairs:
+        v1= 1, e1 = [1,0,0]
+        v2= 2, e2 = [0,1,0]
+        v3= 3, e3 = [0,0,1]
+        So in this example, the eigen pairs of matrix X should be
+        Ep =[(1, [1,0,0]),
+             (2, [0,1,0]), 
+             (3, [0,0,1])]
+        Here P[0] represents the first eigen pair (1,[1,0,0]), where the eigen value is 1, and the eigen vector is [1,0,0]
+        Hint: you could use np.linalg.eigh() to compute the eigen pairs of a matrix. 
     '''
 
     #########################################
@@ -111,63 +60,83 @@ def compute_P(E,v,k):
 
 
 
-    #########################################
-    return P
-
-
-#--------------------------
-def compute_Xp(Xc,P):
-    '''
-        Compute the projected feature matrix Xp by projecting data Xc using matrix P. 
-        Input:
-            Xc:  the feature matrix after centering, a float numpy matrix of shape n by p. Here n is the number of data records, p is the number of dimensions.
-             P: the projection matrix, a numpy float matrix of shape p by k. 
-        Output:
-            Xp: the feature matrix after projection (dimension reduced), a numpy float matrix of shape p by k. 
-    '''
 
     #########################################
-    ## INSERT YOUR CODE HERE
+    return Ep
 
 
-
-    #########################################
-    return Xp
+    ''' TEST: Now you can test the correctness of your code above by typing `nosetests -v test1.py:test_compute_eigen_pairs' in the terminal.  '''
 
 
 
 #--------------------------
-def PCA(X, k=1):
+def sort_eigen_pairs(Ep, order = 'ascending'):
     '''
-        Compute PCA of matrix X. 
+        Sort the eigen pairs in descending/ascending order of the eigen values. 
         Input:
-            X:  the feature matrix, a float numpy matrix of shape n by p. Here n is the number of data records, p is the number of dimensions.
-            k:  the number of dimensions to output (k should be smaller than p)
+            Ep:  the eigen pairs of matrix X, a python list of length p. 
+                Ep is a list as [(v1,e1), (v2, e2), ... ]
+                Each element of Ep corresponds to one eigen pair (v,e), here v is an eigen value of matrix C, e is its eigen vector.
+                Here v is a float scalar, and e is a numpy vector of length p.
+            order: a string of either 'ascending' or 'descending', whether to sort the eigen pairs in ascending or descending order of the eigen values.
         Output:
-            Xp: the feature matrix with reduced dimensions, a numpy float matrix of shape n by k. 
-             P: the projection matrix, a numpy float matrix of shape p by k. 
-        Note: in this problem, you cannot use existing package for PCA, such as scikit-learn
+            Ep: the sorted list of eigen pairs, a python list of length p. 
+
+        For example, suppose we have a 3x3 matrix:
+            X =  2, 0, 0
+                 0, 1, 0
+                 0, 0, 3
+        This matrix has three eigen pairs:
+        v1= 2, e1 = [1,0,0]
+        v2= 1, e2 = [0,1,0]
+        v3= 3, e3 = [0,0,1]
+        So in this example, the eigen pairs of matrix X should be
+        Ep =[(2, [1,0,0]),
+             (1, [0,1,0]), 
+             (3, [0,0,1])]
+        If we sort P in ascending order:
+        Ep= [(1, [0,1,0]), 
+             (2, [1,0,0]), 
+             (3, [0,0,1])]
+        If we sort P in descending order:
+        Ep= [(3, [0,0,1]),
+             (2, [1,0,0]), 
+             (1, [0,1,0])]
+        Hint: you could use np.linalg.eigh() to compute the eigen pairs of a matrix. 
     '''
 
     #########################################
     ## INSERT YOUR CODE HERE
 
-    # centering matrix X 
 
 
-    # compute covariance matrix C
 
-
-    # compute eigen pairs of L
-
-
-    # compute the projection matrix 
-
-
-    # project the data into lower dimension using projection matrix P and centered data matrix X
 
 
     #########################################
-    return Xp, P 
+    return Ep 
+
+    ''' TEST: Now you can test the correctness of your code above by typing `nosetests -v test1.py:test_sort_eigen_pairs' in the terminal.  '''
+
+
+
+
+#--------------------------------------------
+
+''' TEST Problem 1: 
+        Now you can test the correctness of all the above functions by typing `nosetests -v test1.py' in the terminal.  
+
+        If your code passed all the tests, you will see the following message in the terminal:
+            ----------- Problem 1 (10 points in total)--------------------- ... ok
+            (5 points) compute_eigen_pairs ... ok
+            (5 points) sort_eigen_pairs ... ok
+            
+            ----------------------------------------------------------------------
+            Ran 3 tests in 0.002s            
+            OK
+'''
+
+#--------------------------------------------
+
 
 
